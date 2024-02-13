@@ -3,10 +3,8 @@ use std::net::TcpListener;
 use reqwest::StatusCode;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
-use zero2prod::{
-    config::{get_config, DatabaseSettings},
-    startup::run,
-};
+use zero2prod::config::{get_config, DatabaseSettings};
+use zero2prod::startup::run;
 
 pub struct TestApp {
     pub address: String,
@@ -37,7 +35,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .expect("Failed to connect to Postgres.");
 
     connection
-        .execute(format!(r#"CREATE DATABASE "{}";"#, config.database).as_str())
+        .execute(&*format!(r#"CREATE DATABASE "{}";"#, config.database))
         .await
         .expect("Failed to create database.");
 
@@ -70,11 +68,6 @@ async fn health() {
 #[tokio::test]
 async fn subscribe_ok() {
     let app = spawn_app().await;
-    let config = get_config().expect("Failed to read configuration.");
-    let connection_string = config.database.connection_string();
-    let mut connection = PgConnection::connect(&connection_string)
-        .await
-        .expect("Failed to connect to Postgres.");
     let client = reqwest::Client::new();
 
     let body = "name=Totally%20Real%20Name&email=trn%40mail.tld";
@@ -90,7 +83,7 @@ async fn subscribe_ok() {
     assert_eq!(StatusCode::OK, response.status());
 
     let saved = sqlx::query!("SELECT email, name FROM subscriptions",)
-        .fetch_one(&mut connection)
+        .fetch_one(&app.db_pool)
         .await
         .expect("Failed to fetch saved subscription.");
 
