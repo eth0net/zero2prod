@@ -1,9 +1,9 @@
 use std::{io::Error, net::TcpListener};
 
-use zero2prod::run;
+use zero2prod::startup;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let listener = TcpListener::bind("127.0.0.1:8000")?;
-    run(listener)?.await
+    startup::run(listener)?.await
 }
