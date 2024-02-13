@@ -1,6 +1,8 @@
 use std::net::TcpListener;
 
 use reqwest::StatusCode;
+use sqlx::{Connection, PgConnection};
+use zero2prod::config::get_config;
 
 #[tokio::test]
 async fn health() {
@@ -20,6 +22,11 @@ async fn health() {
 #[tokio::test]
 async fn subscribe_ok() {
     let address = spawn_app();
+    let config = get_config().expect("Failed to read configuration.");
+    let connection_string = config.database.connection_string();
+    let connection = PgConnection::connect(&connection_string)
+        .await
+        .expect("Failed to connect to Postgres.");
     let client = reqwest::Client::new();
 
     let body = "name=Totally%20Real%20Name&email=trn%mail.tld";
@@ -65,7 +72,7 @@ async fn subscribe_bad_request() {
 }
 
 fn spawn_app() -> String {
-    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
+    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind address");
     let port = listener.local_addr().unwrap().port();
     let server = zero2prod::startup::run(listener).expect("Failed to run server");
 
