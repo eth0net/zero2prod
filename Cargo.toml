@@ -15,6 +15,8 @@ name = "zero2prod"
 actix-web = "4"
 chrono = { version = "0.4.22", default-features = false, features = ["clock"] }
 config = "0.13"
+env_logger = "0.9"
+log = "0.4"
 reqwest = "0.11.24"
 serde = { version = "1", features = ["derive"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
@@ -28,6 +30,7 @@ features = [
     "macros",
     "migrate",
     "postgres",
-    "runtime-tokio-rustls",
+    "runtime-tokio",
+    "tls-rustls",
     "uuid",
 ]
