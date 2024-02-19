@@ -1,4 +1,5 @@
 use config::{Config, ConfigError, File, FileFormat};
+use secrecy::{ExposeSecret, Secret};
 
 #[derive(serde::Deserialize)]
 pub struct Settings {
@@ -8,23 +9,30 @@ pub struct Settings {
 
 #[derive(serde::Deserialize)]
 pub struct DatabaseSettings {
+    pub name: String,
     pub host: String,
     pub port: u16,
     pub username: String,
-    pub password: String,
-    pub database: String,
+    pub password: Secret<String>,
 }
 
 impl DatabaseSettings {
-    pub fn connection_string(&self) -> String {
-        format!("{}/{}", self.connection_string_no_db(), self.database)
+    pub fn connection_string(&self) -> Secret<String> {
+        Secret::new(format!(
+            "{}/{}",
+            self.connection_string_no_db().expose_secret(),
+            self.name
+        ))
     }
 
-    pub fn connection_string_no_db(&self) -> String {
-        format!(
+    pub fn connection_string_no_db(&self) -> Secret<String> {
+        Secret::new(format!(
             "postgres://{}:{}@{}:{}",
-            self.username, self.password, self.host, self.port
-        )
+            self.username,
+            self.password.expose_secret(),
+            self.host,
+            self.port
+        ))
     }
 }
 
