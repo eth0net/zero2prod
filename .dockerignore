@@ -1,0 +1,10 @@
+.github/
+migrations/
+scripts/
+target/
+tests/
+
+.env
+.gitignore
+Dockerfile
+README.md

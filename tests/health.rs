@@ -4,10 +4,9 @@ use std::net::TcpListener;
 
 use once_cell::sync::Lazy;
 use reqwest::StatusCode;
-use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
-use zero2prod::config::{get_config, DatabaseSettings};
+use zero2prod::config::{database, get_config};
 use zero2prod::startup::run;
 use zero2prod::telemetry::{init_subscriber, make_subscriber};
 
@@ -49,8 +48,8 @@ async fn spawn_app() -> TestApp {
     TestApp { address, db_pool }
 }
 
-pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
-    let mut connection = PgConnection::connect(config.connection_string_no_db().expose_secret())
+pub async fn configure_database(config: &database::Config) -> PgPool {
+    let mut connection = PgConnection::connect_with(&config.without_db())
         .await
         .expect("Failed to connect to Postgres.");
 
@@ -59,7 +58,7 @@ pub async fn configure_database(config: &DatabaseSettings) -> PgPool {
         .await
         .expect("Failed to create database.");
 
-    let connection_pool = PgPool::connect(config.connection_string().expose_secret())
+    let connection_pool = PgPool::connect_with(config.with_db())
         .await
         .expect("Failed to connect to Postgres.");
     sqlx::migrate!("./migrations")

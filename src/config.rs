@@ -1,44 +1,41 @@
-use config::{Config, ConfigError, File, FileFormat};
-use secrecy::{ExposeSecret, Secret};
+use std::env;
+
+use config::File;
+
+use self::environment::Environment;
+
+pub mod application;
+pub mod database;
+pub mod environment;
 
 #[derive(serde::Deserialize)]
-pub struct Settings {
-    pub application_port: u16,
-    pub database: DatabaseSettings,
+pub struct Config {
+    pub application: application::Config,
+    pub database: database::Config,
 }
 
-#[derive(serde::Deserialize)]
-pub struct DatabaseSettings {
-    pub name: String,
-    pub host: String,
-    pub port: u16,
-    pub username: String,
-    pub password: Secret<String>,
-}
+pub fn get_config() -> Result<Config, config::ConfigError> {
+    let base_path = env::current_dir().expect("Failed to determine the current directory.");
+    let config_dir = base_path.join("config");
 
-impl DatabaseSettings {
-    pub fn connection_string(&self) -> Secret<String> {
-        Secret::new(format!(
-            "{}/{}",
-            self.connection_string_no_db().expose_secret(),
-            self.name
-        ))
-    }
+    let environment: Environment = env::var("APP_ENVIRONMENT")
+        .unwrap_or_else(|_| "local".into())
+        .try_into()
+        .expect("Failed to parse environment");
 
-    pub fn connection_string_no_db(&self) -> Secret<String> {
-        Secret::new(format!(
-            "postgres://{}:{}@{}:{}",
-            self.username,
-            self.password.expose_secret(),
-            self.host,
-            self.port
-        ))
-    }
-}
+    let config_file_path = config_dir.join("config.yaml");
+    let environment_file_path = config_dir.join(format!("{}.yaml", environment.as_str()));
 
-pub fn get_config() -> Result<Settings, ConfigError> {
-    let settings = Config::builder()
-        .add_source(File::new("config.yaml", FileFormat::Yaml))
+    let config_file = File::from(config_file_path);
+    let environment_file = File::from(environment_file_path);
+    let environment_vars = config::Environment::with_prefix("app")
+        .prefix_separator("_")
+        .separator("__");
+
+    let settings = config::Config::builder()
+        .add_source(config_file)
+        .add_source(environment_file)
+        .add_source(environment_vars)
         .build()?;
-    settings.try_deserialize::<Settings>()
+    settings.try_deserialize::<Config>()
 }
