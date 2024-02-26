@@ -119,6 +119,9 @@ async fn subscribe_bad_request() {
         ("name=Totally%20Real%20Name", "missing the email"),
         ("email=trn%mail.tld", "missing the name"),
         ("", "missing both name and email"),
+        ("name=Totally%20Real%20Name&email=", "empty email"),
+        ("name=&email=trn%40mail.tld", "empty name"),
+        ("name=&email=", "empty name and email"),
     ];
 
     for (body, description) in test_cases {
