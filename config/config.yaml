@@ -6,3 +6,7 @@ database:
   password: password
   host: localhost
   port: 5432
+mail:
+  timeout:
+    secs: 10
+    nanos: 0

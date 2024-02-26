@@ -2,3 +2,7 @@ application:
   host: localhost
 database:
   require_ssl: false
+mail:
+  auth_token: secret
+  base_url: localhost
+  sender: zero@to.dev

@@ -7,6 +7,7 @@ use reqwest::StatusCode;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use uuid::Uuid;
 use zero2prod::config::{database, get_config};
+use zero2prod::mail;
 use zero2prod::startup::run;
 use zero2prod::telemetry::{init_subscriber, make_subscriber};
 
@@ -42,7 +43,9 @@ async fn spawn_app() -> TestApp {
 
     let db_pool = configure_database(&config.database).await;
 
-    let server = run(listener, db_pool.clone()).expect("Failed to run server");
+    let mail_client = mail::Client::new(config.mail).expect("get mail client");
+
+    let server = run(listener, db_pool.clone(), mail_client).expect("Failed to run server");
     tokio::spawn(server);
 
     TestApp { address, db_pool }

@@ -3,6 +3,7 @@ use std::net::TcpListener;
 
 use sqlx::PgPool;
 use zero2prod::config::get_config;
+use zero2prod::mail;
 use zero2prod::startup::run;
 use zero2prod::telemetry::{init_subscriber, make_subscriber};
 
@@ -18,5 +19,7 @@ async fn main() -> Result<()> {
 
     let connection_pool = PgPool::connect_lazy_with(config.database.with_db());
 
-    run(listener, connection_pool)?.await
+    let mail_client = mail::Client::new(config.mail).expect("get mail client");
+
+    run(listener, connection_pool, mail_client)?.await
 }

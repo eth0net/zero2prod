@@ -1,6 +1,8 @@
+use std::fmt::Display;
+
 use unicode_segmentation::UnicodeSegmentation;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct SubscriberName(String);
 
 impl SubscriberName {
@@ -25,6 +27,12 @@ impl SubscriberName {
 impl AsRef<str> for SubscriberName {
     fn as_ref(&self) -> &str {
         &self.0
+    }
+}
+
+impl Display for SubscriberName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 

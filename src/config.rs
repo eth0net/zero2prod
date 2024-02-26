@@ -7,11 +7,13 @@ use self::environment::Environment;
 pub mod application;
 pub mod database;
 pub mod environment;
+pub mod mail;
 
 #[derive(serde::Deserialize)]
 pub struct Config {
     pub application: application::Config,
     pub database: database::Config,
+    pub mail: mail::Config,
 }
 
 pub fn get_config() -> Result<Config, config::ConfigError> {
