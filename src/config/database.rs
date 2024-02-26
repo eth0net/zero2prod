@@ -6,7 +6,7 @@ use sqlx::{
 };
 use tracing_log::log::LevelFilter;
 
-#[derive(serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct Config {
     pub name: String,
 

@@ -1,10 +1,7 @@
 use std::io::{stdout, Result};
-use std::net::TcpListener;
 
-use sqlx::PgPool;
 use zero2prod::config::get_config;
-use zero2prod::mail;
-use zero2prod::startup::run;
+use zero2prod::startup::Application;
 use zero2prod::telemetry::{init_subscriber, make_subscriber};
 
 #[tokio::main]
@@ -13,13 +10,7 @@ async fn main() -> Result<()> {
     init_subscriber(subscriber);
 
     let config = get_config().expect("Failed to read configuration.");
-
-    let address = format!("{}:{}", config.application.host, config.application.port);
-    let listener = TcpListener::bind(address)?;
-
-    let connection_pool = PgPool::connect_lazy_with(config.database.with_db());
-
-    let mail_client = mail::Client::new(config.mail).expect("get mail client");
-
-    run(listener, connection_pool, mail_client)?.await
+    let application = Application::build(config).await?;
+    application.run_until_stopped().await?;
+    Ok(())
 }

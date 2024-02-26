@@ -9,7 +9,7 @@ pub mod database;
 pub mod environment;
 pub mod mail;
 
-#[derive(serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct Config {
     pub application: application::Config,
     pub database: database::Config,

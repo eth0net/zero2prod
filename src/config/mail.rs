@@ -4,7 +4,7 @@ use secrecy::Secret;
 
 use crate::domain::SubscriberEmail;
 
-#[derive(serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct Config {
     pub auth_token: Secret<String>,
     pub base_url: String,
